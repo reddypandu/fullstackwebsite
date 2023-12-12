@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(cors());
@@ -21,7 +22,17 @@ mongoose.connection.on("connected", () => {
 mongoose.connection.on("error", (err) => {
   console.error("MongoDB connection error:", err);
 });
-
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "pandureddypatterns@gmail.com", // Replace with your Gmail email address
+    pass: "Pandu@12", // Replace with your Gmail password or an app-specific password
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 // Define a mongoose schema for the user data
 const userSchema = new mongoose.Schema({
   name: String,
@@ -33,6 +44,7 @@ const userSchema = new mongoose.Schema({
       message: "{VALUE} is not an integer.",
     },
   },
+  gender: String,
 });
 
 // Create a mongoose model based on the schema
@@ -46,7 +58,7 @@ app.use(express.static("public"));
 
 // Handle form submission
 app.post("/submit-form", async (req, res) => {
-  const { name, email, number } = req.body;
+  const { name, email, number, gender } = req.body;
 
   try {
     // Create a new user instance
@@ -54,11 +66,26 @@ app.post("/submit-form", async (req, res) => {
       name,
       email,
       number,
+      gender,
     });
 
     // Save the user to the database
     await newUser.save();
+    // Send email notification
+    const mailOptions = {
+      from: "pandureddypatterns@gmail.com", // Replace with your Gmail email address
+      to: "saipandupatt143@gmail.com", // Replace with the recipient's email address
+      subject: "New Form Submission",
+      text: `Name: ${name}\nEmail: ${email}\nNumber: ${number}`,
+    };
 
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
     res.json({ message: "Form data submitted successfully!" });
   } catch (error) {
     console.error("Error saving user to database:", error);

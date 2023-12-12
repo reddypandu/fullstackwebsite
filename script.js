@@ -6,6 +6,7 @@ document
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const number = document.getElementById("number").value;
+    const gender = document.getElementById("gender").value;
 
     try {
       const response = await fetch("http://localhost:3000/submit-form", {
@@ -13,7 +14,7 @@ document
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, number }),
+        body: JSON.stringify({ name, email, number, gender }),
       });
 
       if (!response.ok) {
